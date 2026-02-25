@@ -1,0 +1,403 @@
+:root {
+  --bg: radial-gradient(circle at top left, #0f172a 0, #020617 45%, #020617 100%);
+  --bg-plain: #020617;
+  --bg-elevated: rgba(15, 23, 42, 0.9);
+  --glass: rgba(15, 23, 42, 0.8);
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: rgba(148, 163, 184, 0.3);
+  --primary: #38bdf8;
+  --primary-soft: rgba(56, 189, 248, 0.12);
+  --primary-text: #0b1120;
+  --secondary: #818cf8;
+  --error: #f97373;
+  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.7);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+}
+
+:root[data-theme='light'] {
+  --bg: radial-gradient(circle at top left, #eff6ff 0, #e5e7eb 45%, #e5e7eb 100%);
+  --bg-plain: #f3f4f6;
+  --bg-elevated: rgba(255, 255, 255, 0.9);
+  --glass: rgba(255, 255, 255, 0.9);
+  --text: #0f172a;
+  --muted: #6b7280;
+  --border: rgba(148, 163, 184, 0.35);
+  --primary: #2563eb;
+  --primary-soft: rgba(37, 99, 235, 0.12);
+  --primary-text: #f9fafb;
+  --secondary: #6366f1;
+  --error: #dc2626;
+  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.18);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(24px);
+}
+
+.app-header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(to right, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.7));
+  backdrop-filter: blur(18px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-size: 1.05rem;
+}
+
+.logo::before {
+  content: '';
+  width: 26px;
+  height: 26px;
+  border-radius: 12px;
+  background: conic-gradient(from 160deg, #38bdf8, #6366f1, #a855f7, #38bdf8);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.7);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-label {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.app-main {
+  flex: 1;
+  padding: 18px 22px 22px;
+}
+
+/* Auth */
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 64px - 44px);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 26px 26px 24px;
+  border-radius: var(--radius-lg);
+  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(129, 140, 248, 0.12), transparent 55%),
+    var(--glass);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+}
+
+.auth-card h2 {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+}
+
+.auth-card > p {
+  margin: 0 0 18px;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.form-group input {
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.4);
+  color: var(--text);
+  outline: none;
+  font-size: 0.9rem;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+:root[data-theme='light'] .form-group input {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.form-group input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+}
+
+.btn {
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  padding: 9px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease,
+    transform 0.08s ease, box-shadow 0.16s ease;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--primary-text);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.4);
+}
+
+.btn.secondary {
+  border-color: rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.btn.link {
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  color: var(--primary);
+}
+
+.btn:hover {
+  transform: translateY(-0.5px);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.5);
+}
+
+.btn.primary:hover {
+  filter: brightness(1.05);
+}
+
+.error-text {
+  color: var(--error);
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+}
+
+/* Flowchart layout */
+.page.flowchart-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: calc(100vh - 64px - 44px);
+}
+
+.flowchart-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+}
+
+.flow-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title-input {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.7);
+  color: var(--text);
+  font-size: 0.94rem;
+}
+
+:root[data-theme='light'] .title-input {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.title-input::placeholder {
+  color: var(--muted);
+}
+
+.flow-id {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--muted);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--radius-lg);
+  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 60%),
+    var(--glass);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.55);
+}
+
+.toolbar .btn {
+  padding-inline: 12px;
+  font-size: 0.85rem;
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.toolbar .btn.primary {
+  background: radial-gradient(circle at top left, #22c55e, #16a34a);
+  box-shadow: 0 10px 22px rgba(22, 163, 74, 0.4);
+}
+
+.toolbar .btn:nth-child(3) {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+.info-banner {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.14);
+  color: var(--primary);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.info-banner::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.35);
+}
+
+.flow-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 2fr 0.95fr;
+  gap: 12px;
+}
+
+.flow-canvas {
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  overflow: hidden;
+  background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95));
+  box-shadow: var(--shadow-soft);
+}
+
+.flow-editor-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.suggestions-panel {
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  padding: 14px 14px 12px;
+  background: radial-gradient(circle at bottom right, rgba(129, 140, 248, 0.16), transparent 55%),
+    var(--glass);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  box-shadow: var(--shadow-soft);
+}
+
+.suggestions-panel h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.suggestions-panel h3::after {
+  content: 'AI';
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.16);
+  color: var(--primary);
+}
+
+.suggestions-panel h4 {
+  margin: 8px 0 4px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.suggestions-panel ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+}
+
+.suggestions-panel li {
+  margin-bottom: 4px;
+}
+
+.suggestions-panel pre {
+  font-size: 0.75rem;
+  max-height: 140px;
+  overflow: auto;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+@media (max-width: 900px) {
+  .app-main {
+    padding: 14px;
+  }
+
+  .flow-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .suggestions-panel {
+    height: 220px;
+  }
+}
