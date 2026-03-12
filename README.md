@@ -1,4 +1,4 @@
-## AI Flowchart Builder (AlgoFlow)
+## FlowAI: Flowchart Builder 
 
 Full-stack application with:
 - React client (`client/`)
