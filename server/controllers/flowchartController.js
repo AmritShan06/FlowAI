@@ -70,3 +70,18 @@ export const getFlowchart = async (req, res, next) => {
     next(err);
   }
 };
+
+export const listUserFlowcharts = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    const [rows] = await pool.query(
+      'SELECT id, title, updated_at, created_at FROM flowcharts WHERE user_id = ? ORDER BY updated_at DESC',
+      [userId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+};

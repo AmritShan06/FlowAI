@@ -26,4 +26,6 @@ export const login = (data) => client.post('/auth/login', data);
 export const saveFlowchart = (payload) => client.post('/flowchart/save', payload);
 export const loadFlowchart = (id) => client.get(`/flowchart/${id}`);
 
+export const listFlowcharts = () => client.get('/flowchart');
+
 export const aiSuggest = (flowchart) => client.post('/ai/suggest', { flowchart });

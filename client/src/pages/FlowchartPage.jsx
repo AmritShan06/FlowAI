@@ -1,15 +1,26 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import FlowEditor from '../components/FlowEditor';
 import Toolbar from '../components/Toolbar';
 import SuggestionsPanel from '../components/SuggestionsPanel';
 import { saveFlowchart, loadFlowchart, aiSuggest } from '../services/api';
 
-const FlowchartPage = () => {
+const FlowchartPage = ({ initialId = null, initialTitle = 'Untitled Flowchart', initialFlowchart = null, onSaved }) => {
   const editorRef = useRef(null);
-  const [title, setTitle] = useState('Untitled Flowchart');
-  const [currentId, setCurrentId] = useState(null);
+  const [title, setTitle] = useState(initialTitle);
+  const [currentId, setCurrentId] = useState(initialId);
   const [suggestions, setSuggestions] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
+
+  useEffect(() => {
+    setTitle(initialTitle);
+    setCurrentId(initialId);
+  }, [initialTitle, initialId]);
+
+  useEffect(() => {
+    if (editorRef.current && initialFlowchart && initialFlowchart.nodes && initialFlowchart.edges) {
+      editorRef.current.setFlow(initialFlowchart.nodes, initialFlowchart.edges);
+    }
+  }, [initialFlowchart]);
 
   const handleAddNode = (type) => {
     if (!editorRef.current) return;
@@ -54,6 +65,7 @@ const FlowchartPage = () => {
       });
       setCurrentId(data.id);
       alert(`Flowchart saved (id: ${data.id})`);
+      if (onSaved) onSaved(data);
     } catch (err) {
       console.error(err);
       alert('Save failed');

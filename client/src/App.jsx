@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AuthPage from './pages/AuthPage';
-import FlowchartPage from './pages/FlowchartPage';
+import DashboardPage from './pages/DashboardPage';
 import DarkModeToggle from './components/DarkModeToggle';
 import { setAuthToken } from './services/api';
 
@@ -41,11 +41,7 @@ const App = () => {
         </div>
       </header>
       <main className="app-main">
-        {!user ? (
-          <AuthPage onAuthenticated={handleAuthenticated} />
-        ) : (
-          <FlowchartPage />
-        )}
+        {!user ? <AuthPage onAuthenticated={handleAuthenticated} /> : <DashboardPage />}
       </main>
     </div>
   );
