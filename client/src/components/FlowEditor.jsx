@@ -5,35 +5,109 @@ import ReactFlow, {
   Background,
   addEdge,
   useNodesState,
-  useEdgesState
+  useEdgesState,
+  Handle,
+  Position
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import dagre from 'dagre';
 import { toPng } from 'html-to-image';
 
-const nodeTypesConfig = {
-  start: { label: 'Start', style: { background: '#4caf50', color: '#fff' } },
-  process: { label: 'Process', style: { background: '#2196f3', color: '#fff' } },
-  decision: { label: 'Decision', style: { background: '#ff9800', color: '#fff' } },
-  io: { label: 'Input/Output', style: { background: '#9c27b0', color: '#fff' } },
-  end: { label: 'End', style: { background: '#f44336', color: '#fff' } }
+const getDefaultLabel = (type) => {
+  const map = {
+    start: 'Start',
+    process: 'Process',
+    decision: 'Decision',
+    io: 'Input/Output',
+    subprocess: 'Subprocess',
+    database: 'Database',
+    manual: 'Manual',
+    end: 'End'
+  };
+  return map[type] || type || 'Node';
 };
 
-const defaultNodeStyle = {
-  padding: 10,
-  borderRadius: 4,
-  border: '1px solid #999'
+const NodeShell = ({ data, className, shape }) => {
+  return (
+    <div className={`rf-custom-node ${className}`}>
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="rf-handle"
+        style={{ top: '50%' }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="rf-handle"
+        style={{ top: '50%' }}
+      />
+      {shape}
+      <div className="rf-node-label">{data?.label || getDefaultLabel(data?.nodeType)}</div>
+    </div>
+  );
 };
 
-const getNodeLabel = (data, type) => {
-  if (data?.label) return data.label;
-  return nodeTypesConfig[type]?.label || 'Node';
-};
+const StartNode = (props) =>
+  NodeShell({
+    ...props,
+    className: 'rf-node-start',
+    shape: <div className="rf-shape rf-shape--start" />
+  });
+
+const EndNode = (props) =>
+  NodeShell({
+    ...props,
+    className: 'rf-node-end',
+    shape: <div className="rf-shape rf-shape--end" />
+  });
+
+const ProcessNode = (props) =>
+  NodeShell({
+    ...props,
+    className: 'rf-node-process',
+    shape: <div className="rf-shape rf-shape--process" />
+  });
+
+const DecisionNode = (props) =>
+  NodeShell({
+    ...props,
+    className: 'rf-node-decision',
+    shape: <div className="rf-shape rf-shape--decision" />
+  });
+
+const IONode = (props) =>
+  NodeShell({
+    ...props,
+    className: 'rf-node-io',
+    shape: <div className="rf-shape rf-shape--io" />
+  });
+
+const SubprocessNode = (props) =>
+  NodeShell({
+    ...props,
+    className: 'rf-node-subprocess',
+    shape: <div className="rf-shape rf-shape--subprocess" />
+  });
+
+const DatabaseNode = (props) =>
+  NodeShell({
+    ...props,
+    className: 'rf-node-database',
+    shape: <div className="rf-shape rf-shape--database" />
+  });
+
+const ManualNode = (props) =>
+  NodeShell({
+    ...props,
+    className: 'rf-node-manual',
+    shape: <div className="rf-shape rf-shape--manual" />
+  });
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
-const nodeWidth = 160;
-const nodeHeight = 60;
+const nodeWidth = 220;
+const nodeHeight = 95;
 
 const layoutNodesAndEdges = (nodes, edges, direction = 'LR') => {
   const isHorizontal = direction === 'LR';
@@ -65,16 +139,48 @@ const layoutNodesAndEdges = (nodes, edges, direction = 'LR') => {
   return newNodes;
 };
 
+const nodeTypes = {
+  default: ProcessNode,
+  start: StartNode,
+  process: ProcessNode,
+  decision: DecisionNode,
+  io: IONode,
+  subprocess: SubprocessNode,
+  database: DatabaseNode,
+  manual: ManualNode,
+  end: EndNode
+};
+
+const normalizeNodes = (incomingNodes) => {
+  return (incomingNodes || []).map((n) => {
+    const inferredType = n?.data?.nodeType;
+    const hasCustom = inferredType && inferredType !== 'default' && nodeTypes[inferredType];
+    const finalType = hasCustom ? inferredType : n?.type;
+
+    return {
+      ...n,
+      type: nodeTypes[finalType] ? finalType : 'default',
+      data: {
+        ...n.data,
+        label: n?.data?.label || getDefaultLabel(finalType),
+        nodeType: inferredType || n?.data?.nodeType
+      }
+    };
+  });
+};
+
 const FlowEditor = React.forwardRef(
   ({ initialNodes = [], initialEdges = [], onFlowChange }, wrapperRef) => {
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+    const [nodes, setNodes, onNodesChange] = useNodesState(
+      normalizeNodes(initialNodes)
+    );
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const editorWrapperRef = useRef(null);
 
     React.useImperativeHandle(wrapperRef, () => ({
       getFlow: () => ({ nodes, edges }),
       setFlow: (newNodes, newEdges) => {
-        setNodes(newNodes);
+        setNodes(normalizeNodes(newNodes));
         setEdges(newEdges);
       },
       autoLayout: () => {
@@ -93,7 +199,17 @@ const FlowEditor = React.forwardRef(
 
     const onConnect = useCallback(
       (params) => {
-        setEdges((eds) => addEdge({ ...params, animated: false }, eds));
+        setEdges((eds) =>
+          addEdge(
+            {
+              ...params,
+              animated: false,
+              style: { stroke: 'rgba(56, 189, 248, 0.95)', strokeWidth: 2 },
+              markerEnd: { type: 'arrowclosed', color: 'rgba(56, 189, 248, 0.95)' }
+            },
+            eds
+          )
+        );
       },
       [setEdges]
     );
@@ -129,10 +245,9 @@ const FlowEditor = React.forwardRef(
         ...nds,
         {
           id,
-          type: 'default',
+          type: nodeTypes[type] ? type : 'default',
           position,
-          data: { label: getNodeLabel({}, type), nodeType: type },
-          style: { ...defaultNodeStyle, ...(nodeTypesConfig[type]?.style || {}) }
+          data: { label: getDefaultLabel(type), nodeType: type }
         }
       ]);
     };
@@ -154,10 +269,23 @@ const FlowEditor = React.forwardRef(
           onDrop={onDrop}
           onDragOver={onDragOver}
           fitView
+          nodeTypes={nodeTypes}
+          deleteKeyCode={46}
+          nodesDraggable
+          nodesConnectable
+          zoomOnScroll
+          panOnScroll
+          snapToGrid
+          snapGrid={[10, 10]}
+          proOptions={{ hideAttribution: true }}
         >
-          <MiniMap />
+          <MiniMap
+            nodeStrokeColor="rgba(56, 189, 248, 0.65)"
+            nodeColor="rgba(15, 23, 42, 0.45)"
+            maskColor="rgba(15, 23, 42, 0.45)"
+          />
           <Controls />
-          <Background />
+          <Background gap={18} size={1} color="rgba(56, 189, 248, 0.25)" variant="dots" />
         </ReactFlow>
       </div>
     );

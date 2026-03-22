@@ -18,9 +18,45 @@ Return STRICT JSON only in this exact shape:
   "newConnections": Array<{ "source": string, "target": string }>
 }
 
+Rules:
+- Use ONLY existing node ids found in the provided flowchart JSON for improvedNodes.
+- Do not add edges that reference non-existent ids.
+- Return JSON only (no markdown, no backticks, no extra commentary).
+
 Here is the flowchart JSON:
 ${JSON.stringify(flowchartJson)}
 `;
+};
+
+const extractJson = (text) => {
+  if (!text || typeof text !== 'string') return null;
+
+  const trimmed = text.trim();
+  // Common Gemini responses may include code fences
+  const withoutFences = trimmed.replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
+
+  // If it already looks like JSON, try parsing directly
+  if (withoutFences.startsWith('{') || withoutFences.startsWith('[')) {
+    try {
+      return JSON.parse(withoutFences);
+    } catch (e) {
+      // fall through to brace extraction
+    }
+  }
+
+  // Try to find the first/last JSON object in the text
+  const firstBrace = withoutFences.indexOf('{');
+  const lastBrace = withoutFences.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    const maybeJson = withoutFences.slice(firstBrace, lastBrace + 1);
+    try {
+      return JSON.parse(maybeJson);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  return null;
 };
 
 const heuristicSuggest = (flowchartJson) => {
@@ -68,8 +104,8 @@ const heuristicSuggest = (flowchartJson) => {
 };
 
 export const analyzeFlowchartWithAI = async (flowchartJson) => {
-  const apiUrl = process.env.AI_API_URL;
-  const apiKey = process.env.AI_API_KEY;
+  const apiUrl = process.env.AI_API_URL; // Gemini: https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent
+  const apiKey = process.env.AI_API_KEY; // Gemini API key from Google AI Studio
 
   if (!apiUrl || !apiKey) {
     return heuristicSuggest(flowchartJson);
@@ -77,20 +113,52 @@ export const analyzeFlowchartWithAI = async (flowchartJson) => {
 
   const prompt = buildPrompt(flowchartJson);
 
-  const response = await axios.post(
-    apiUrl,
-    {
-      prompt,
-      flowchart: flowchartJson
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      timeout: 30000
-    }
-  );
+  // Gemini generateContent expects:
+  // POST <apiUrl>?key=<apiKey>
+  // body: { contents: [{ role:'user', parts:[{ text: prompt }] }], generationConfig: { responseMimeType:'application/json', ... } }
+  const url = apiUrl.includes('key=')
+    ? apiUrl
+    : `${apiUrl}?key=${encodeURIComponent(apiKey)}`;
 
-  return response.data;
+  try {
+    const response = await axios.post(
+      url,
+      {
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: prompt }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.2,
+          topP: 0.9,
+          maxOutputTokens: 1024,
+          responseMimeType: 'application/json'
+        }
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+
+    const text =
+      response?.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      response?.data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ||
+      null;
+
+    const parsed = extractJson(text);
+    if (!parsed) return heuristicSuggest(flowchartJson);
+
+    return {
+      suggestions: parsed.suggestions || [],
+      improvedNodes: parsed.improvedNodes || [],
+      newConnections: parsed.newConnections || []
+    };
+  } catch (e) {
+    return heuristicSuggest(flowchartJson);
+  }
 };

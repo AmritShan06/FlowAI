@@ -11,6 +11,20 @@ const FlowchartPage = ({ initialId = null, initialTitle = 'Untitled Flowchart', 
   const [suggestions, setSuggestions] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
 
+  const getDefaultLabel = (type) => {
+    const map = {
+      start: 'Start',
+      process: 'Process',
+      decision: 'Decision',
+      io: 'Input/Output',
+      subprocess: 'Subprocess',
+      database: 'Database',
+      manual: 'Manual',
+      end: 'End'
+    };
+    return map[type] || type;
+  };
+
   useEffect(() => {
     setTitle(initialTitle);
     setCurrentId(initialId);
@@ -18,7 +32,22 @@ const FlowchartPage = ({ initialId = null, initialTitle = 'Untitled Flowchart', 
 
   useEffect(() => {
     if (editorRef.current && initialFlowchart && initialFlowchart.nodes && initialFlowchart.edges) {
-      editorRef.current.setFlow(initialFlowchart.nodes, initialFlowchart.edges);
+      // Normalize older flows that used `type: "default"` and relied on `data.nodeType`.
+      const normalizedNodes = (initialFlowchart.nodes || []).map((n) => {
+        const inferredType = n?.data?.nodeType;
+        const hasCustomType = inferredType && inferredType !== 'default';
+        const finalType = hasCustomType ? inferredType : n.type;
+        return {
+          ...n,
+          type: finalType,
+          data: {
+            ...n.data,
+            label: n.data?.label || getDefaultLabel(finalType)
+          }
+        };
+      });
+
+      editorRef.current.setFlow(normalizedNodes, initialFlowchart.edges);
     }
   }, [initialFlowchart]);
 
@@ -28,9 +57,9 @@ const FlowchartPage = ({ initialId = null, initialTitle = 'Untitled Flowchart', 
     const id = `${type}-${+new Date()}`;
     const newNode = {
       id,
-      type: 'default',
+      type,
       position: { x: 250, y: 50 + nodes.length * 80 },
-      data: { label: type, nodeType: type }
+      data: { label: getDefaultLabel(type), nodeType: type }
     };
     editorRef.current.setFlow([...nodes, newNode], edges);
   };
